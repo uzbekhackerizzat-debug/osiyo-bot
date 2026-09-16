@@ -147,17 +147,31 @@ const ticketWizard = new Scenes.WizardScene(
     ctx.wizard.state.ticketData.language = lang;
     const ticket = db.createTicket(ctx.wizard.state.ticketData);
 
+    const isRu = lang === 'ru';
+    const timeFormatted = new Date(ticket.created_at).toLocaleString(isRu ? 'ru-RU' : 'uz-UZ', { timeZone: 'Asia/Tashkent' });
+
     // 1-xabar: Ro'yxatdan o'tganlik haqida
-    const msg1 = lang === 'ru'
+    const msg1 = isRu
       ? `📝 Обращение ${ticket.id} зарегистрировано.`
       : `📝 Murojaat ${ticket.id} raqami ostida ro‘yxatdan o‘tkazildi.`;
     await ctx.reply(msg1);
 
-    // 2-xabar: Ishga qabul qilindi + Asosiy menyu
-    const msg2 = lang === 'ru'
-      ? `📩\nОбращение #${ticket.id} принято в работу. \nПожалуйста, дождитесь ответа оператора.`
-      : `📩\nMurojaat #${ticket.id} ishga qabul qilindi. \nIltimos, operator javobini kuting.`;
-    await ctx.reply(msg2, mainMenuKeyboard(lang));
+    // 2-xabar: Foydalanuvchiga guruhdagi kabi to'liq va chiroyli ma'lumot kartasi + Asosiy menyu
+    const userCardMsg = isRu
+      ? `📋 <b>ВАШЕ ОБРАЩЕНИЕ #${ticket.id}</b>\n\n` +
+        `🏢 <b>ИНН / ПИНФЛ:</b> <code>${ticket.inn}</code>\n` +
+        `📞 <b>Телефон:</b> <code>${ticket.phone}</code>\n` +
+        `🕒 <b>Время:</b> ${timeFormatted}\n\n` +
+        `📝 <b>Суть обращения:</b>\n${ticket.description}\n\n` +
+        `📩 <i>Обращение принято в работу. Пожалуйста, дождитесь ответа оператора.</i>`
+      : `📋 <b>SIZNING MUROJAATINGIZ #${ticket.id}</b>\n\n` +
+        `🏢 <b>STIR / JShShIR:</b> <code>${ticket.inn}</code>\n` +
+        `📞 <b>Telefon:</b> <code>${ticket.phone}</code>\n` +
+        `🕒 <b>Vaqt:</b> ${timeFormatted}\n\n` +
+        `📝 <b>Murojaat mazmuni:</b>\n${ticket.description}\n\n` +
+        `📩 <i>Murojaat ishga qabul qilindi. Iltimos, operator javobini kuting.</i>`;
+
+    await ctx.replyWithHTML(userCardMsg, mainMenuKeyboard(lang));
 
     // Send notification to Admin & Group (in user's chosen language!)
     await notifyAdminsAboutTicket(ctx, ticket);
