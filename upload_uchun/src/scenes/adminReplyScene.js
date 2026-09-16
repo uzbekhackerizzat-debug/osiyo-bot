@@ -48,11 +48,13 @@ const adminReplyScene = new Scenes.WizardScene(
 
     const userNotification = userLang === 'ru'
       ? `🔔 <b>Ответ службы поддержки на обращение #${ticket.id}:</b>\n\n` +
-        `«${text}»\n\n` +
+        `📝 <b>Ваш вопрос:</b>\n<i>«${ticket.description}»</i>\n\n` +
+        `💬 <b>Ответ оператора:</b>\n«${text}»\n\n` +
         `<i>Оператор: Служба поддержки «OSIYO TRADE BIZNES»</i>\n\n` +
         `📋 Просмотреть историю обращения вы можете в разделе «Мои обращения».`
       : `🔔 <b>#${ticket.id} raqamli murojaatingizga qo'llab-quvvatlash xizmati javobi:</b>\n\n` +
-        `«${text}»\n\n` +
+        `📝 <b>Sizning savolingiz:</b>\n<i>«${ticket.description}»</i>\n\n` +
+        `💬 <b>Operator javobi:</b>\n«${text}»\n\n` +
         `<i>Operator: "OSIYO TRADE BIZNES" Qo'llab-quvvatlash xizmati</i>\n\n` +
         `📋 Murojaat tarixini "Mening murojaatlarim" bo'limida ko'rishingiz mumkin.`;
 
