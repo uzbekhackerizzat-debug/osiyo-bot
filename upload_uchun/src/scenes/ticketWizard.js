@@ -58,7 +58,7 @@ const ticketWizard = new Scenes.WizardScene(
   async (ctx) => {
     const lang = ctx.session?.lang || 'uz';
     const loc = getLocale(lang);
-    let phone = '';
+    let rawPhone = '';
 
     if (ctx.message?.text === loc.btn_cancel || ctx.message?.text === '/cancel') {
       await ctx.reply(loc.ticket_cancelled, mainMenuKeyboard(lang));
@@ -66,13 +66,30 @@ const ticketWizard = new Scenes.WizardScene(
     }
 
     if (ctx.message?.contact) {
-      phone = ctx.message.contact.phone_number;
-      if (!phone.startsWith('+')) phone = `+${phone}`;
+      rawPhone = ctx.message.contact.phone_number || '';
     } else if (ctx.message?.text) {
-      phone = ctx.message.text.trim();
+      rawPhone = ctx.message.text.trim();
     }
 
-    ctx.wizard.state.ticketData.phone = phone || '+998';
+    // Telefon raqam tekshiruvi: faqat raqamlar, faqat 991234567, +998991234567 yoki 998991234567
+    const cleanPhone = rawPhone.replace(/[\s\-()]/g, '');
+    let finalPhone = '';
+
+    if (/^\d{9}$/.test(cleanPhone)) {
+      finalPhone = `+998${cleanPhone}`;
+    } else if (/^\+998\d{9}$/.test(cleanPhone)) {
+      finalPhone = cleanPhone;
+    } else if (/^998\d{9}$/.test(cleanPhone)) {
+      finalPhone = `+${cleanPhone}`;
+    } else {
+      const errorMsg = lang === 'ru'
+        ? "⚠️ Номер телефона введен неверно!\n\nПожалуйста, введите номер без букв и символов, только в одном из следующих форматов:\n• <code>991234567</code>\n• <code>+998991234567</code>\n• <code>998991234567</code>"
+        : "⚠️ Telefon raqami noto‘g‘ri kiritildi!\n\nIltimos, harf yoki keraksiz belgilarsiz, faqat quyidagi formatlardan birida kiriting:\n• <code>991234567</code>\n• <code>+998991234567</code>\n• <code>998991234567</code>";
+      await ctx.replyWithHTML(errorMsg, phoneRequestKeyboard(lang));
+      return;
+    }
+
+    ctx.wizard.state.ticketData.phone = finalPhone;
 
     // To'g'ridan-to'g'ri murojaat matnini so'raymiz
     const promptText = lang === 'ru'
