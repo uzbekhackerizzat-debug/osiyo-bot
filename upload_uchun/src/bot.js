@@ -152,35 +152,53 @@ bot.on('message', async (ctx) => {
 
 // Error handling
 bot.catch((err, ctx) => {
-  console.error(`[Telegraf Error] update type: ${ctx.updateType}`, err);
+  console.error(`[Telegraf Error] update type: ${ctx?.updateType}`, err);
 });
 
-// Start HTTP health server for Render / Cloud hosting
+// Process-level safety: prevent crash on unhandled rejections or network blips
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ [Uncaught Exception]:', err.message);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ [Unhandled Rejection]:', reason);
+});
+
+// Start HTTP health server for Render / Cloud hosting (Port 10000 is default on Render)
 const http = require('http');
-const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('OSIYO TRADE BIZNES Bot is running 24/7!\n');
-}).listen(PORT, '0.0.0.0', () => {
+const PORT = parseInt(process.env.PORT || '10000', 10);
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('OK - OSIYO TRADE BIZNES Bot is running 24/7!\n');
+});
+
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Web health server running on port ${PORT}`);
 });
 
 // Start bot
 (async () => {
   try {
-    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+    await bot.telegram.deleteWebhook({ drop_pending_updates: false });
     const me = await bot.telegram.getMe();
     console.log('----------------------------------------------------');
     console.log(`🚀 OSIYO TRADE BIZNES bot (@${me.username}) muvaffaqiyatli ishga tushdi!`);
     console.log(`📌 Bot nomi: ${me.first_name}`);
     console.log(`📌 Node.js: ${process.version}`);
+    console.log(`📌 Port: ${PORT}`);
     console.log('----------------------------------------------------');
-    await bot.launch({ dropPendingUpdates: true });
+    await bot.launch();
   } catch (err) {
     console.error('❌ Botni ishga tushirishda xatolik yuz berdi:', err.message);
   }
 })();
 
 // Graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+process.once('SIGINT', () => {
+  server.close();
+  bot.stop('SIGINT');
+});
+process.once('SIGTERM', () => {
+  server.close();
+  bot.stop('SIGTERM');
+});
+
