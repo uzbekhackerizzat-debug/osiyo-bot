@@ -74,10 +74,12 @@ function setupAdminHandler(bot) {
 
     const userNotification = userLang === 'ru'
       ? `🔔 <b>Ответ службы поддержки на обращение #${ticket.id}:</b>\n\n` +
-        `«${replyText}»\n\n` +
+        `📝 <b>Ваш вопрос:</b>\n<i>«${ticket.description}»</i>\n\n` +
+        `💬 <b>Ответ оператора:</b>\n«${replyText}»\n\n` +
         `<i>Оператор: Служба поддержки «OSIYO TRADE BIZNES»</i>`
       : `🔔 <b>#${ticket.id} raqamli murojaatingizga qo'llab-quvvatlash xizmati javobi:</b>\n\n` +
-        `«${replyText}»\n\n` +
+        `📝 <b>Sizning savolingiz:</b>\n<i>«${ticket.description}»</i>\n\n` +
+        `💬 <b>Operator javobi:</b>\n«${replyText}»\n\n` +
         `<i>Operator: "OSIYO TRADE BIZNES" Qo'llab-quvvatlash xizmati</i>`;
 
     try {
@@ -131,10 +133,12 @@ function setupAdminHandler(bot) {
             const isRu = user?.language === 'ru';
             const userNotification = isRu
               ? `🔔 <b>Ответ службы поддержки на обращение #${ticket.id}:</b>\n\n` +
-                `«${replyText}»\n\n` +
+                `📝 <b>Ваш вопрос:</b>\n<i>«${ticket.description}»</i>\n\n` +
+                `💬 <b>Ответ оператора:</b>\n«${replyText}»\n\n` +
                 `<i>Оператор: Служба поддержки «OSIYO TRADE BIZNES»</i>`
               : `🔔 <b>#${ticket.id} raqamli murojaatingizga qo'llab-quvvatlash xizmati javobi:</b>\n\n` +
-                `«${replyText}»\n\n` +
+                `📝 <b>Sizning savolingiz:</b>\n<i>«${ticket.description}»</i>\n\n` +
+                `💬 <b>Operator javobi:</b>\n«${replyText}»\n\n` +
                 `<i>Operator: "OSIYO TRADE BIZNES" Qo'llab-quvvatlash xizmati</i>`;
 
             try {
