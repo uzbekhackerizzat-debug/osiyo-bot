@@ -32,14 +32,24 @@ const ticketWizard = new Scenes.WizardScene(
   async (ctx) => {
     const lang = ctx.session?.lang || 'uz';
     const loc = getLocale(lang);
-    const text = ctx.message?.text?.trim();
+    const text = ctx.message?.text?.trim() || '';
 
     if (text === loc.btn_cancel || text === '/cancel') {
       await ctx.reply(loc.ticket_cancelled, mainMenuKeyboard(lang));
       return ctx.scene.leave();
     }
 
-    ctx.wizard.state.ticketData.inn = text || 'Mavjud emas';
+    // Faqat raqamlar: aynan 9 yoki 14 xonali sonlar bo'lishi shart!
+    const cleanInn = text.replace(/[\s-]/g, '');
+    if (!/^\d{9}$/.test(cleanInn) && !/^\d{14}$/.test(cleanInn)) {
+      const errorMsg = lang === 'ru'
+        ? "⚠️ Пожалуйста, введите только 9 или 14 цифр (буквы и символы не принимаются):"
+        : "⚠️ Iltimos, faqat 9 yoki 14 xonali son kiriting (harflar yoki belgilar qabul qilinmaydi):";
+      await ctx.reply(errorMsg, cancelKeyboard(lang));
+      return;
+    }
+
+    ctx.wizard.state.ticketData.inn = cleanInn;
     await ctx.reply(loc.step_2_phone, phoneRequestKeyboard(lang));
     return ctx.wizard.next();
   },
@@ -116,7 +126,8 @@ const ticketWizard = new Scenes.WizardScene(
     ctx.wizard.state.ticketData.description = desc;
     ctx.wizard.state.ticketData.attachments = attachments;
 
-    // Save ticket in database
+    // Save ticket in database with user's language
+    ctx.wizard.state.ticketData.language = lang;
     const ticket = db.createTicket(ctx.wizard.state.ticketData);
 
     // 1-xabar: Ro'yxatdan o'tganlik haqida
@@ -131,7 +142,7 @@ const ticketWizard = new Scenes.WizardScene(
       : `📩\nMurojaat #${ticket.id} ishga qabul qilindi. \nIltimos, operator javobini kuting.`;
     await ctx.reply(msg2, mainMenuKeyboard(lang));
 
-    // Send notification to Admin & Group
+    // Send notification to Admin & Group (in user's chosen language!)
     await notifyAdminsAboutTicket(ctx, ticket);
 
     return ctx.scene.leave();
@@ -139,12 +150,22 @@ const ticketWizard = new Scenes.WizardScene(
 );
 
 async function notifyAdminsAboutTicket(ctx, ticket) {
-  const adminMsg = `🚨 <b>YANGI MUROJAAT #${ticket.id}</b>\n\n` +
-    `👤 <b>Foydalanuvchi:</b> ${ticket.user_first_name} (@${ticket.user_username || 'username_yoq'}) [ID: <code>${ticket.user_id}</code>]\n` +
-    `🏢 <b>STIR / JShShIR:</b> <code>${ticket.inn}</code>\n` +
-    `📞 <b>Telefon:</b> <code>${ticket.phone}</code>\n` +
-    `🕒 <b>Vaqt:</b> ${new Date(ticket.created_at).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}\n\n` +
-    `📝 <b>Murojaat mazmuni:</b>\n${ticket.description}`;
+  const isRu = ticket.language === 'ru';
+  const timeFormatted = new Date(ticket.created_at).toLocaleString(isRu ? 'ru-RU' : 'uz-UZ', { timeZone: 'Asia/Tashkent' });
+
+  const adminMsg = isRu
+    ? `🚨 <b>НОВОЕ ОБРАЩЕНИЕ #${ticket.id}</b>\n\n` +
+      `👤 <b>Пользователь:</b> ${ticket.user_first_name} (@${ticket.user_username || 'нет_юзернейма'}) [ID: <code>${ticket.user_id}</code>]\n` +
+      `🏢 <b>ИНН / ПИНФЛ:</b> <code>${ticket.inn}</code>\n` +
+      `📞 <b>Телефон:</b> <code>${ticket.phone}</code>\n` +
+      `🕒 <b>Время:</b> ${timeFormatted}\n\n` +
+      `📝 <b>Суть обращения:</b>\n${ticket.description}`
+    : `🚨 <b>YANGI MUROJAAT #${ticket.id}</b>\n\n` +
+      `👤 <b>Foydalanuvchi:</b> ${ticket.user_first_name} (@${ticket.user_username || 'username_yoq'}) [ID: <code>${ticket.user_id}</code>]\n` +
+      `🏢 <b>STIR / JShShIR:</b> <code>${ticket.inn}</code>\n` +
+      `📞 <b>Telefon:</b> <code>${ticket.phone}</code>\n` +
+      `🕒 <b>Vaqt:</b> ${timeFormatted}\n\n` +
+      `📝 <b>Murojaat mazmuni:</b>\n${ticket.description}`;
 
   const dynamicGroup = db.getSetting('support_group_id');
   const targetGroup = dynamicGroup || config.SUPPORT_GROUP_ID;
@@ -158,6 +179,8 @@ async function notifyAdminsAboutTicket(ctx, ticket) {
     recipients = [...config.ADMIN_IDS].filter(id => Number(id) !== Number(ticket.user_id));
   }
 
+  const keyboard = adminTicketInlineKeyboard(ticket.id, ticket.language || 'uz');
+
   for (const adminId of recipients) {
     try {
       if (ticket.attachments && ticket.attachments.length > 0) {
@@ -166,20 +189,20 @@ async function notifyAdminsAboutTicket(ctx, ticket) {
             await ctx.telegram.sendPhoto(adminId, att.file_id, {
               caption: adminMsg,
               parse_mode: 'HTML',
-              ...adminTicketInlineKeyboard(ticket.id)
+              ...keyboard
             });
           } else if (att.type === 'document') {
             await ctx.telegram.sendDocument(adminId, att.file_id, {
               caption: adminMsg,
               parse_mode: 'HTML',
-              ...adminTicketInlineKeyboard(ticket.id)
+              ...keyboard
             });
           }
         }
       } else {
         await ctx.telegram.sendMessage(adminId, adminMsg, {
           parse_mode: 'HTML',
-          ...adminTicketInlineKeyboard(ticket.id)
+          ...keyboard
         });
       }
     } catch (err) {

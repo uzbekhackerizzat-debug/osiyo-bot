@@ -155,6 +155,16 @@ bot.catch((err, ctx) => {
   console.error(`[Telegraf Error] update type: ${ctx.updateType}`, err);
 });
 
+// Start HTTP health server for Render / Cloud hosting
+const http = require('http');
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('OSIYO TRADE BIZNES Bot is running 24/7!\n');
+}).listen(PORT, '0.0.0.0', () => {
+  console.log(`🌐 Web health server running on port ${PORT}`);
+});
+
 // Start bot
 (async () => {
   try {

@@ -177,6 +177,7 @@ function createTicket(data) {
     user_username: data.user_username || '',
     inn: data.inn,
     phone: data.phone,
+    language: data.language || 'uz',
     product_group: data.product_group,
     role: data.role || '',
     topic: data.topic || '',

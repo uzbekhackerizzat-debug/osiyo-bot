@@ -104,14 +104,15 @@ function markirovkaNewsKeyboard(lang = 'uz') {
   ]);
 }
 
-function adminTicketInlineKeyboard(ticketId) {
+function adminTicketInlineKeyboard(ticketId, lang = 'uz') {
+  const isRu = lang === 'ru';
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('✍️ Javob berish', `admin_reply_${ticketId}`),
-      Markup.button.callback('⏳ Jarayonga olish', `admin_status_in_progress_${ticketId}`)
+      Markup.button.callback(isRu ? '✍️ Ответить' : '✍️ Javob berish', `admin_reply_${ticketId}`),
+      Markup.button.callback(isRu ? '⏳ В работу' : '⏳ Jarayonga olish', `admin_status_in_progress_${ticketId}`)
     ],
     [
-      Markup.button.callback('✅ Yopish (Resolved)', `admin_status_resolved_${ticketId}`)
+      Markup.button.callback(isRu ? '✅ Закрыть (Решено)' : '✅ Yopish (Resolved)', `admin_status_resolved_${ticketId}`)
     ]
   ]);
 }
