@@ -1,0 +1,43 @@
+[
+  {
+    "id": "1",
+    "numeric_id": 1,
+    "user_id": 7457368059,
+    "user_first_name": "Искандар",
+    "user_username": "UZBHACKER",
+    "inn": "12345678",
+    "phone": "+998958445566",
+    "role": "",
+    "topic": "",
+    "description": "1️⃣ Iltimos, tashkilotning STIR raqamini yoki JShShIRni kiriting (agar mavjud bo‘lsa):\n\nSTIR 9 tali\nJSHSHIR 14 tali bolishi shart",
+    "attachments": [],
+    "status": "resolved",
+    "created_at": "2026-09-16T18:12:44.017Z",
+    "updated_at": "2026-09-16T18:13:49.618Z",
+    "replies": [
+      {
+        "sender_id": 7457368059,
+        "sender_name": "Искандар",
+        "text": "1",
+        "sent_at": "2026-09-16T18:13:49.618Z"
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "numeric_id": 2,
+    "user_id": 7457368059,
+    "user_first_name": "Искандар",
+    "user_username": "UZBHACKER",
+    "inn": "Tfddh",
+    "phone": "Ggdtg",
+    "role": "",
+    "topic": "",
+    "description": "Gdydhhfd",
+    "attachments": [],
+    "status": "new",
+    "created_at": "2026-09-16T18:14:57.850Z",
+    "updated_at": "2026-09-16T18:14:57.850Z",
+    "replies": []
+  }
+]
